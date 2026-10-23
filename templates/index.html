@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="it" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gym Tracker Pro - Full Body</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0f172a',
+                        cardBg: '#1e293b',
+                        accentBlue: '#3b82f6',
+                        accentGreen: '#10b981',
+                        accentRed: '#ef4444'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-darkBg text-slate-100 min-h-screen pb-12 font-sans antialiased">
+
+    <!-- HEADER -->
+    <header class="bg-cardBg border-b border-slate-700 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-dumbbell text-accentBlue text-2xl"></i>
+                <h1 class="text-xl font-bold tracking-tight text-white">Gym Tracker Pro</h1>
+            </div>
+            <button onclick="toggleModal(true)" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg text-sm transition flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left text-accentBlue"></i>
+                <span>Storico</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 pt-6 space-y-6">
+
+        <!-- SELEZIONE SESSIONE FULL BODY -->
+        <section id="startSessionSection" class="bg-cardBg border border-slate-700 rounded-xl p-6 shadow-lg">
+            <h2 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-play text-accentGreen"></i> Inizia Un Nuovo Allenamento
+            </h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Seleziona Scheda del Giorno</label>
+                    <select id="routineSelect" onchange="updateExerciseOptions()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accentBlue">
+                        <option value="Sessione A (Focus Forza & Compressione)">Sessione A (Focus Forza & Compressione)</option>
+                        <option value="Sessione B (Focus Catena Posteriore & Ipertrofia)">Sessione B (Focus Catena Posteriore & Ipertrofia)</option>
+                        <option value="Sessione C (Focus Volume & Isolamento)">Sessione C (Focus Volume & Isolamento)</option>
+                    </select>
+                </div>
+                <button onclick="startSession()" class="w-full bg-accentGreen hover:bg-emerald-600 text-white font-medium py-3 rounded-lg transition shadow-md flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-bolt"></i> Avvia Sessione
+                </button>
+            </div>
+        </section>
+
+        <!-- DASHBOARD ALLENAMENTO ATTIVO -->
+        <section id="activeSessionSection" class="hidden space-y-6">
+            
+            <div class="bg-cardBg border border-slate-700 rounded-xl p-4 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <span class="relative flex h-3 w-3">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                    </span>
+                    <div>
+                        <span class="text-xs text-slate-400 uppercase font-semibold">Sessione Attiva</span>
+                        <p id="currentRoutineTitle" class="text-base font-bold text-slate-100">---</p>
+                    </div>
+                </div>
+                <button onclick="endSession()" class="bg-accentRed/20 hover:bg-accentRed/30 text-accentRed border border-accentRed/40 px-3 py-1.5 rounded-lg text-sm font-medium transition">
+                    Termina
+                </button>
+            </div>
+
+            <!-- REGISTRAZIONE SERIE -->
+            <div class="bg-cardBg border border-slate-700 rounded-xl p-6 shadow-lg space-y-4">
+                <h3 class="text-md font-semibold text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-accentBlue"></i> Registra Set
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Esercizio</label>
+                        <select id="exerciseSelect" onchange="updateExerciseImage()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accentBlue">
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Numero Set</label>
+                        <input id="setInput" type="number" min="1" value="1" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accentBlue">
+                    </div>
+                </div>
+
+                <!-- ANTEPRIMA IMMAGINE ESERCIZIO -->
+                <div id="exerciseImageContainer" class="bg-slate-900/60 border border-slate-800 rounded-lg p-3 flex justify-center items-center overflow-hidden">
+                    <img id="exerciseImg" src="" alt="Anteprima Esercizio" class="max-h-48 rounded-lg object-contain">
+                </div>
+
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Kg</label>
+                        <input id="weightInput" type="number" step="0.5" value="60" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accentBlue">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Reps</label>
+                        <input id="repsInput" type="number" min="1" value="8" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accentBlue">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">RPE</label>
+                        <input id="rpeInput" type="number" min="1" max="10" step="0.5" value="8" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accentBlue">
+                    </div>
+                </div>
+
+                <button onclick="saveSet()" class="w-full bg-accentBlue hover:bg-blue-600 text-white font-medium py-2.5 rounded-lg transition shadow flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Salva Serie
+                </button>
+            </div>
+
+            <!-- TIMER RECUPERO -->
+            <div class="bg-cardBg border border-slate-700 rounded-xl p-6 shadow-lg text-center space-y-4">
+                <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider">Timer di Recupero</h3>
+                <div class="text-5xl font-black tracking-tight text-accentBlue font-mono" id="timerDisplay">01:30</div>
+                <div class="flex justify-center items-center gap-3">
+                    <button onclick="adjustTimer(-10)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-sm border border-slate-700">-10s</button>
+                    <button id="timerToggleBtn" onclick="toggleTimer()" class="bg-slate-700 hover:bg-slate-600 text-slate-100 px-5 py-2 rounded-lg font-medium transition flex items-center gap-2">
+                        <i id="timerIcon" class="fa-solid fa-play"></i> <span id="timerBtnText">Avvia</span>
+                    </button>
+                    <button onclick="adjustTimer(30)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-sm border border-slate-700">+30s</button>
+                </div>
+            </div>
+
+            <!-- TABELLA SERIE COMPLETATE OGGI -->
+            <div class="bg-cardBg border border-slate-700 rounded-xl p-6 shadow-lg space-y-4">
+                <h3 class="text-md font-semibold text-slate-200">Serie Completate Oggi</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                        <thead class="bg-slate-800/60 text-slate-400 text-xs uppercase">
+                            <tr>
+                                <th class="p-3">Esercizio</th>
+                                <th class="p-3">Set</th>
+                                <th class="p-3">Carico</th>
+                                <th class="p-3">Reps</th>
+                                <th class="p-3">RPE</th>
+                                <th class="p-3">Ora</th>
+                                <th class="p-3 text-center">Azione</th>
+                            </tr>
+                        </thead>
+                        <tbody id="todaySetsTableBody" class="divide-y divide-slate-800">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- MODALE STORICO -->
+    <div id="historyModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex justify-center items-center p-4">
+        <div class="bg-cardBg border border-slate-700 rounded-xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl">
+            <div class="p-4 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                    <i class="fa-solid fa-box-archive text-accentBlue"></i> Storico Completo
+                </h3>
+                <button onclick="toggleModal(false)" class="text-slate-400 hover:text-white text-xl px-2">&times;</button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="bg-slate-800 text-slate-400 text-xs uppercase sticky top-0">
+                        <tr>
+                            <th class="p-3">Data</th>
+                            <th class="p-3">Scheda</th>
+                            <th class="p-3">Esercizio</th>
+                            <th class="p-3">Set</th>
+                            <th class="p-3">Kg</th>
+                            <th class="p-3">Reps</th>
+                            <th class="p-3 text-center">Azione</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody" class="divide-y divide-slate-800">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSessionId = null;
+        let timerInterval = null;
+        let timerSeconds = 90;
+        let isTimerRunning = false;
+
+        // MAPPATURA FULL BODY 3 GIORNI
+        const EXERCISES_MAP = {
+            "Sessione A (Focus Forza & Compressione)": {
+                "Squat frontale con bilanciere": "/static/assets/squat-frontale-o-con-bilanciere-davanti.jpg",
+                "Distensione con bilanciere su panca piana": "/static/assets/distensione-con-bilanciere-su-panca-piana.jpg",
+                "Rematore con bilanciere": "/static/assets/rematore-con-bilanciere.jpg",
+                "Arnold Press (distensioni da seduto)": "/static/assets/distensioni-con-manubri-da-seduto-alla-Arnold-Schwarzenegger.jpg",
+                "Pushdown ai cavi con corda": "/static/assets/Pushdown-ai-cavi-con-corda.jpg",
+                "Curl bilanciere presa supina": "/static/assets/curl-bilanciere-presa-supina.jpg",
+                "Sollevamento gambe alle parallele": "/static/assets/sollevamento-gambe-alle-parallele.jpg"
+            },
+            "Sessione B (Focus Catena Posteriore & Ipertrofia)": {
+                "Stacco da terra a gambe tese": "/static/assets/stacco-da-terra-con-bilanciere-a-gambe-tese.jpg",
+                "Dip alle parallele": "/static/assets/distensioni-o-dip-alle-parallele.jpg",
+                "Trazioni al pulley presa stretta": "/static/assets/trazioni-al-pulley-presa-stretta.jpg",
+                "Alzate laterali con manubri": "/static/assets/alzate-laterali-con-manubri.jpg",
+                "Curl manubri panca inclinata": "/static/assets/curl-con-manubri-a-presa-supina-su-panca-inclinata.jpg",
+                "French press con manubri panca piana": "/static/assets/french-press-con-manubri-sdraiati-su-panca-piana.jpg",
+                "Leg Tucks da seduti": "/static/assets/leg-tucks-da-seduti.jpg"
+            },
+            "Sessione C (Focus Volume & Isolamento)": {
+                "Pressa per gambe a 45°": "/static/assets/pressa-per-gambe-a-45.jpg",
+                "Affondi con manubri": "/static/assets/affondi-con-manubri.jpg",
+                "Distensioni manubri panca inclinata": "/static/assets/distensioni-con-manubri-su-panca-inclinata.jpg",
+                "Croci con manubri panca piana": "/static/assets/croci-con-manubri-su-panca-piana.jpg",
+                "Tirate al mento con bilanciere": "/static/assets/tirate-al-mento-con-bilanciere.jpg",
+                "Curl a martello con manubri": "/static/assets/curl-con-presa-neutra-o-a-martello-con-manubri-in-piedi.jpg",
+                "Crunch a gambe alte": "/static/assets/crunch-a-gambe-alte-con-tocco-della-punta-dei-piedi.jpg"
+            }
+        };
+
+        function updateExerciseOptions() {
+            const routine = document.getElementById("routineSelect").value;
+            const exercises = EXERCISES_MAP[routine] || {};
+            const selectEl = document.getElementById("exerciseSelect");
+            selectEl.innerHTML = Object.keys(exercises).map(ex => `<option value="${ex}">${ex}</option>`).join('');
+            updateExerciseImage();
+        }
+
+        function updateExerciseImage() {
+            const routine = document.getElementById("routineSelect").value;
+            const exName = document.getElementById("exerciseSelect").value;
+            const imgPath = EXERCISES_MAP[routine]?.[exName] || '';
+            const imgEl = document.getElementById("exerciseImg");
+            
+            if (imgPath) {
+                imgEl.src = imgPath;
+                imgEl.onerror = () => {
+                    imgEl.src = "https://via.placeholder.com/400x200/1e293b/94a3b8?text=" + encodeURIComponent(exName);
+                };
+            }
+        }
+
+        async function startSession() {
+            const routine = document.getElementById("routineSelect").value;
+            const res = await fetch('/api/sessions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ routine_name: routine })
+            });
+            const data = await res.json();
+            currentSessionId = data.session_id;
+
+            document.getElementById("currentRoutineTitle").innerText = routine;
+            document.getElementById("startSessionSection").classList.add("hidden");
+            document.getElementById("activeSessionSection").classList.remove("hidden");
+            
+            updateExerciseOptions();
+            loadTodaySets();
+        }
+
+        function endSession() {
+            currentSessionId = null;
+            document.getElementById("startSessionSection").classList.remove("hidden");
+            document.getElementById("activeSessionSection").classList.add("hidden");
+            resetTimer();
+        }
+
+        async function saveSet() {
+            if (!currentSessionId) return;
+
+            const payload = {
+                session_id: currentSessionId,
+                exercise_name: document.getElementById("exerciseSelect").value,
+                set_number: parseInt(document.getElementById("setInput").value),
+                weight_kg: parseFloat(document.getElementById("weightInput").value),
+                reps: parseInt(document.getElementById("repsInput").value),
+                rpe: parseFloat(document.getElementById("rpeInput").value)
+            };
+
+            await fetch('/api/sets', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            document.getElementById("setInput").value = payload.set_number + 1;
+            loadTodaySets();
+            resetTimer();
+            toggleTimer(true);
+        }
+
+        async function deleteSet(setId, isFromHistory = false) {
+            if (!confirm("Cancellare questa serie dal database?")) return;
+
+            await fetch(`/api/sets/${setId}`, { method: 'DELETE' });
+
+            if (isFromHistory) {
+                toggleModal(true);
+            }
+            if (currentSessionId) {
+                loadTodaySets();
+            }
+        }
+
+        async function loadTodaySets() {
+            if (!currentSessionId) return;
+            const res = await fetch(`/api/sets?session_id=${currentSessionId}`);
+            const sets = await res.json();
+
+            const tbody = document.getElementById("todaySetsTableBody");
+            tbody.innerHTML = sets.map(s => `
+                <tr class="hover:bg-slate-800/40 transition">
+                    <td class="p-3 font-medium text-white">${s.exercise_name}</td>
+                    <td class="p-3">${s.set_number}</td>
+                    <td class="p-3 text-accentBlue font-bold">${s.weight_kg} kg</td>
+                    <td class="p-3">${s.reps}</td>
+                    <td class="p-3">${s.rpe || '-'}</td>
+                    <td class="p-3 text-xs text-slate-400">${s.timestamp}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="deleteSet(${s.id})" class="text-accentRed hover:text-red-400 p-1">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        /* TIMER RECUPERO */
+        function updateTimerDisplay() {
+            const mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const secs = (timerSeconds % 60).toString().padStart(2, '0');
+            document.getElementById("timerDisplay").innerText = `${mins}:${secs}`;
+        }
+
+        function toggleTimer(forceStart = false) {
+            if (forceStart) isTimerRunning = false;
+
+            if (!isTimerRunning) {
+                isTimerRunning = true;
+                document.getElementById("timerIcon").className = "fa-solid fa-pause";
+                document.getElementById("timerBtnText").innerText = "Pausa";
+
+                timerInterval = setInterval(() => {
+                    if (timerSeconds > 0) {
+                        timerSeconds--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        isTimerRunning = false;
+                        document.getElementById("timerIcon").className = "fa-solid fa-play";
+                        document.getElementById("timerBtnText").innerText = "Avvia";
+                    }
+                }, 1000);
+            } else {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                document.getElementById("timerIcon").className = "fa-solid fa-play";
+                document.getElementById("timerBtnText").innerText = "Riprendi";
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timerSeconds = 90;
+            updateTimerDisplay();
+            document.getElementById("timerIcon").className = "fa-solid fa-play";
+            document.getElementById("timerBtnText").innerText = "Avvia";
+        }
+
+        function adjustTimer(sec) {
+            timerSeconds = Math.max(0, timerSeconds + sec);
+            updateTimerDisplay();
+        }
+
+        /* MODALE STORICO */
+        async function toggleModal(show) {
+            const modal = document.getElementById("historyModal");
+            if (show) {
+                modal.classList.remove("hidden");
+                const res = await fetch('/api/history');
+                const history = await res.json();
+                
+                document.getElementById("historyTableBody").innerHTML = history.map(h => `
+                    <tr class="hover:bg-slate-800/40 border-b border-slate-800">
+                        <td class="p-3 text-xs text-slate-400">${h.date}</td>
+                        <td class="p-3 text-slate-300">${h.routine_name}</td>
+                        <td class="p-3 font-medium text-white">${h.exercise_name}</td>
+                        <td class="p-3">${h.set_number}</td>
+                        <td class="p-3 text-accentBlue font-bold">${h.weight_kg} kg</td>
+                        <td class="p-3">${h.reps}</td>
+                        <td class="p-3 text-center">
+                            <button onclick="deleteSet(${h.id}, true)" class="text-accentRed hover:text-red-400 p-1">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                modal.classList.add("hidden");
+            }
+        }
+
+        updateExerciseOptions();
+    </script>
+</body>
+</html>

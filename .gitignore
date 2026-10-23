@@ -1,0 +1,12 @@
+# Ambiente Virtuale Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Database locale SQLite (NON va su GitHub)
+*.db
+workout_data.db
+
+# File caricati dagli utenti o di sistema
+.DS_Store
